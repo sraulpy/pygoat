@@ -7,21 +7,21 @@ pipeline {
         PYTHON_VERSION = '3.11'
         
         // DefectDojo configuration
-        DEFECTDOJO_URL = "${env.DEFECTDOJO_URL ?: 'http://defectdojo:8080'}"
-        // DEFECTDOJO_API_KEY = credentials('defectdojo-api-key')  // Loaded in stages when needed
+        DEFECTDOJO_URL = "${env.DEFECTDOJO_URL ?: 'http://defectdojo-nginx:8080'}"
+        DEFECTDOJO_API_KEY = credentials('defectdojo-api-key')
         DEFECTDOJO_PRODUCT_ID = "${env.DEFECTDOJO_PRODUCT_ID ?: '1'}"
         DEFECTDOJO_ENGAGEMENT_ID = "${env.DEFECTDOJO_ENGAGEMENT_ID ?: '1'}"
         
         // Dependency-Track configuration
-        DEPENDENCY_TRACK_URL = "${env.DEPENDENCY_TRACK_URL ?: 'http://dependency-track:8081'}"
-        // DEPENDENCY_TRACK_API_KEY = credentials('dependency-track-api-key')  // Loaded in stages when needed
+        DEPENDENCY_TRACK_URL = "${env.DEPENDENCY_TRACK_URL ?: 'http://dependency-track-apiserver:8080'}"
+        DEPENDENCY_TRACK_API_KEY = credentials('dependency-track-api-key')
         DEPENDENCY_TRACK_PROJECT_UUID = "${env.DEPENDENCY_TRACK_PROJECT_UUID ?: '8df1034c-a2a3-4550-b21c-b32970fe2096'}"
         
-        // Security Gates Thresholds
-        BANDIT_CRITICAL_THRESHOLD = '0'
-        BANDIT_HIGH_THRESHOLD = '5'
-        DEPENDENCY_TRACK_CRITICAL_THRESHOLD = '0'
-        DEPENDENCY_TRACK_HIGH_THRESHOLD = '3'
+        // Security Gates Thresholds (Adjusted for PyGoat - intentionally vulnerable app)
+        BANDIT_CRITICAL_THRESHOLD = '10'
+        BANDIT_HIGH_THRESHOLD = '10'
+        DEPENDENCY_TRACK_CRITICAL_THRESHOLD = '5'
+        DEPENDENCY_TRACK_HIGH_THRESHOLD = '10'
         
         // Paths
         WORKSPACE_DIR = "${WORKSPACE}"
@@ -234,9 +234,9 @@ pipeline {
                             cyclonedx-py requirements -i ${WORKSPACE}/requirements.txt -o ${REPORTS_DIR}/sbom.json
                         fi
                         
-                        # Run Safety check
-                        safety check --json --output ${REPORTS_DIR}/safety-report.json || true
-                        safety check --output ${REPORTS_DIR}/safety-report.txt || true
+                        # Run Safety check (redirect output to files)
+                        safety check --json > ${REPORTS_DIR}/safety-report.json 2>&1 || true
+                        safety check --output text > ${REPORTS_DIR}/safety-report.txt 2>&1 || true
                     '''
                     
                     // Parse Safety results
