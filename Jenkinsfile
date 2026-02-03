@@ -38,6 +38,11 @@ pipeline {
         stage('Checkout') {
             steps {
                 script {
+                    // Build timestamp for DefectDojo uploads (UTC, yyyy-MM-dd)
+                    env.BUILD_TIMESTAMP = new Date(currentBuild.startTimeInMillis)
+                        .format('yyyy-MM-dd', java.util.TimeZone.getTimeZone('UTC'))
+                    echo "BUILD_TIMESTAMP=${env.BUILD_TIMESTAMP}"
+
                     echo "🔄 Checking out code from repository..."
                     checkout scm
                     
@@ -391,7 +396,7 @@ pipeline {
                             -F 'engagement=${DEFECTDOJO_ENGAGEMENT_ID}' \
                             -F 'verified=true' \
                             -F 'active=true' \
-                            -F 'scan_date=${BUILD_TIMESTAMP}' \
+                            -F 'scan_date=${env.BUILD_TIMESTAMP}' \
                             -F 'minimum_severity=Info' \
                             -o ${REPORTS_DIR}/defectdojo-bandit-upload.json
                     """
@@ -405,7 +410,7 @@ pipeline {
                             -F 'engagement=${DEFECTDOJO_ENGAGEMENT_ID}' \
                             -F 'verified=true' \
                             -F 'active=true' \
-                            -F 'scan_date=${BUILD_TIMESTAMP}' \
+                            -F 'scan_date=${env.BUILD_TIMESTAMP}' \
                             -o ${REPORTS_DIR}/defectdojo-gitleaks-upload.json || true
                     """
                     
@@ -418,7 +423,7 @@ pipeline {
                             -F 'engagement=${DEFECTDOJO_ENGAGEMENT_ID}' \
                             -F 'verified=true' \
                             -F 'active=true' \
-                            -F 'scan_date=${BUILD_TIMESTAMP}' \
+                            -F 'scan_date=${env.BUILD_TIMESTAMP}' \
                             -o ${REPORTS_DIR}/defectdojo-safety-upload.json || true
                     """
                     
