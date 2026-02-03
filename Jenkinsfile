@@ -65,10 +65,7 @@ pipeline {
                 script {
                     echo "🔧 Setting up environment..."
                     sh '''
-                        # Install Python dependencies
-                        python3 -m pip install --upgrade pip --break-system-packages
-                        
-                        # Install security tools
+                        # Install security tools (pip is already installed)
                         pip install bandit safety cyclonedx-bom --break-system-packages
                         
                         # Install Gitleaks (if not already installed)
