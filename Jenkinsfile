@@ -68,13 +68,16 @@ pipeline {
                         # Install security tools (pip is already installed)
                         pip install bandit safety cyclonedx-bom --break-system-packages
                         
-                        # Install Gitleaks (if not already installed)
+                        # Install Gitleaks if not already available
                         if ! command -v gitleaks &> /dev/null; then
                             echo "Installing Gitleaks..."
                             wget -q https://github.com/gitleaks/gitleaks/releases/download/v8.18.2/gitleaks_8.18.2_linux_x64.tar.gz
-                            tar -xzf gitleaks_8.18.2_linux_x64.tar.gz
-                            chmod +x gitleaks
-                            sudo mv gitleaks /usr/local/bin/ || mv gitleaks ${WORKSPACE}/
+                            tar -xzf gitleaks_8.18.2_linux_x64.tar.gz -C ${WORKSPACE}
+                            chmod +x ${WORKSPACE}/gitleaks
+                            rm gitleaks_8.18.2_linux_x64.tar.gz
+                            echo "Gitleaks installed in ${WORKSPACE}/gitleaks"
+                        else
+                            echo "Gitleaks is already installed at $(command -v gitleaks)"
                         fi
                         
                         # Verify installations
@@ -93,11 +96,16 @@ pipeline {
                 script {
                     echo "🔐 Running Gitleaks secrets scanning..."
                     
-                    // Run Gitleaks
+                    // Run Gitleaks (use from PATH or workspace)
                     def gitleaksStatus = sh(
                         script: '''
                             set +e
-                            gitleaks detect \
+                            GITLEAKS_CMD="gitleaks"
+                            if ! command -v gitleaks &> /dev/null; then
+                                GITLEAKS_CMD="${WORKSPACE}/gitleaks"
+                            fi
+                            
+                            $GITLEAKS_CMD detect \
                                 --source=${WORKSPACE} \
                                 --report-path=${REPORTS_DIR}/gitleaks-report.json \
                                 --report-format=json \
