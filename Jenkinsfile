@@ -8,13 +8,13 @@ pipeline {
         
         // DefectDojo configuration
         DEFECTDOJO_URL = "${env.DEFECTDOJO_URL ?: 'http://defectdojo:8080'}"
-        DEFECTDOJO_API_KEY = credentials('defectdojo-api-key')
+        DEFECTDOJO_API_KEY = credentials('ed53ff69ee3424b81a0c6b775a2a5cd6094afeaa')
         DEFECTDOJO_PRODUCT_ID = "${env.DEFECTDOJO_PRODUCT_ID ?: '1'}"
         DEFECTDOJO_ENGAGEMENT_ID = "${env.DEFECTDOJO_ENGAGEMENT_ID ?: '1'}"
         
         // Dependency-Track configuration
         DEPENDENCY_TRACK_URL = "${env.DEPENDENCY_TRACK_URL ?: 'http://dependency-track:8081'}"
-        DEPENDENCY_TRACK_API_KEY = credentials('dependency-track-api-key')
+        DEPENDENCY_TRACK_API_KEY = credentials('odt_fBiewS5A_FQg7qHjRKpQDIbLPbvtAero8EAqGm6uB')
         DEPENDENCY_TRACK_PROJECT_UUID = "${env.DEPENDENCY_TRACK_PROJECT_UUID ?: '8df1034c-a2a3-4550-b21c-b32970fe2096'}"
         
         // Security Gates Thresholds
@@ -29,6 +29,7 @@ pipeline {
     }
     
     options {
+        timestamps()
         timeout(time: 30, unit: 'MINUTES')
         buildDiscarder(logRotator(numToKeepStr: '10'))
         disableConcurrentBuilds()
