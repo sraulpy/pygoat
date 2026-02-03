@@ -227,11 +227,11 @@ pipeline {
                     sh '''
                         # Generate CycloneDX SBOM
                         if [ -f requirements.txt ]; then
-                            cyclonedx-py -r -i requirements.txt -o ${REPORTS_DIR}/sbom.json
+                            cyclonedx-py requirements -i requirements.txt -o ${REPORTS_DIR}/sbom.json
                         else
                             echo "No requirements.txt found, creating minimal SBOM"
                             pip freeze > ${WORKSPACE}/requirements.txt
-                            cyclonedx-py -r -i ${WORKSPACE}/requirements.txt -o ${REPORTS_DIR}/sbom.json
+                            cyclonedx-py requirements -i ${WORKSPACE}/requirements.txt -o ${REPORTS_DIR}/sbom.json
                         fi
                         
                         # Run Safety check
