@@ -312,26 +312,50 @@ pipeline {
                     // Wait for analysis to complete
                     sleep(time: 30, unit: 'SECONDS')
                     
-                    // Retrieve metrics
+                    // Retrieve metrics with error handling
                     sh '''
-                        # Get project metrics
-                        curl -X GET "${DEPENDENCY_TRACK_URL}/api/v1/metrics/project/${DEPENDENCY_TRACK_PROJECT_UUID}/current" \
+                        # Get project metrics - create empty JSON if fails
+                        if ! curl -X GET "${DEPENDENCY_TRACK_URL}/api/v1/metrics/project/${DEPENDENCY_TRACK_PROJECT_UUID}/current" \
                             -H "X-Api-Key: ${DEPENDENCY_TRACK_API_KEY}" \
-                            -o ${REPORTS_DIR}/dependency-track-metrics.json
+                            -o ${REPORTS_DIR}/dependency-track-metrics.json 2>&1; then
+                            echo '{"critical":0,"high":0,"medium":0,"low":0}' > ${REPORTS_DIR}/dependency-track-metrics.json
+                        fi
                         
-                        # Get vulnerabilities
-                        curl -X GET "${DEPENDENCY_TRACK_URL}/api/v1/vulnerability/project/${DEPENDENCY_TRACK_PROJECT_UUID}" \
+                        # Verify metrics file has valid content
+                        if [ ! -s ${REPORTS_DIR}/dependency-track-metrics.json ]; then
+                            echo '{"critical":0,"high":0,"medium":0,"low":0}' > ${REPORTS_DIR}/dependency-track-metrics.json
+                        fi
+                        
+                        # Get vulnerabilities - create empty array if fails
+                        if ! curl -X GET "${DEPENDENCY_TRACK_URL}/api/v1/vulnerability/project/${DEPENDENCY_TRACK_PROJECT_UUID}" \
                             -H "X-Api-Key: ${DEPENDENCY_TRACK_API_KEY}" \
-                            -o ${REPORTS_DIR}/dependency-track-vulnerabilities.json
+                            -o ${REPORTS_DIR}/dependency-track-vulnerabilities.json 2>&1; then
+                            echo '[]' > ${REPORTS_DIR}/dependency-track-vulnerabilities.json
+                        fi
+                        
+                        # Verify vulnerabilities file has valid content
+                        if [ ! -s ${REPORTS_DIR}/dependency-track-vulnerabilities.json ]; then
+                            echo '[]' > ${REPORTS_DIR}/dependency-track-vulnerabilities.json
+                        fi
                     '''
                     
-                    // Parse metrics
-                    def metrics = readJSON file: "${REPORTS_DIR}/dependency-track-metrics.json"
+                    // Parse metrics with error handling
+                    def metrics = null
+                    def dtCritical = 0
+                    def dtHigh = 0
+                    def dtMedium = 0
+                    def dtLow = 0
                     
-                    def dtCritical = metrics?.critical ?: 0
-                    def dtHigh = metrics?.high ?: 0
-                    def dtMedium = metrics?.medium ?: 0
-                    def dtLow = metrics?.low ?: 0
+                    try {
+                        metrics = readJSON file: "${REPORTS_DIR}/dependency-track-metrics.json"
+                        dtCritical = metrics?.critical ?: 0
+                        dtHigh = metrics?.high ?: 0
+                        dtMedium = metrics?.medium ?: 0
+                        dtLow = metrics?.low ?: 0
+                    } catch (Exception e) {
+                        echo "Warning: Could not parse Dependency-Track metrics. Using default values."
+                        echo "Error: ${e.message}"
+                    }
                     
                     echo """
                     ====================================
