@@ -29,7 +29,6 @@ pipeline {
     }
     
     options {
-        timestamps()
         timeout(time: 30, unit: 'MINUTES')
         buildDiscarder(logRotator(numToKeepStr: '10'))
         disableConcurrentBuilds()
@@ -539,14 +538,16 @@ EOF
                 echo "🧹 Cleaning up..."
                 
                 // Publish HTML reports if available
-                publishHTML([
-                    allowMissing: true,
-                    alwaysLinkToLastBuild: true,
-                    keepAll: true,
-                    reportDir: 'security-reports',
-                    reportFiles: '*.txt,*.json',
-                    reportName: 'Security Reports'
-                ])
+                // NOTE: Requires HTML Publisher plugin
+                // Uncomment after installing the plugin
+                // publishHTML([
+                //     allowMissing: true,
+                //     alwaysLinkToLastBuild: true,
+                //     keepAll: true,
+                //     reportDir: 'security-reports',
+                //     reportFiles: '*.txt,*.json',
+                //     reportName: 'Security Reports'
+                // ])
                 
                 // Clean workspace if needed
                 // cleanWs()
